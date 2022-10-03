@@ -24,7 +24,7 @@ type DBBackupConfig = struct {
 	DbBackupFormat   string `default:"t" split_words:"true"`
 	DbBackupFilePath string `defualt:"/tmp" split_words:"true"`
 	DbBackupFileName string `required:"true" split_words:"true"`
-	DbMaxBackups     int    `default:"5" split_words:"true"`
+	DbMaxBackups     int    `default:"10" split_words:"true"`
 
 	// minio
 	MinioEndpoint        string `required:"true" split_words:"true"`
@@ -42,10 +42,13 @@ func DBBackup(ctx context.Context) {
 	}
 
 	// Create Postgres backup
-	backupFilename := fmt.Sprintf("%s_%d.sql", cfg.DbBackupFileName, time.Now().UnixMilli())
-	backupFQDN := fmt.Sprintf("%s/%s", cfg.DbBackupFilePath, backupFilename)
+	backupFilename := fmt.Sprintf("%s_%d.dump", cfg.DbBackupFileName, time.Now().UnixMilli())
+	backupFQDN := fmt.Sprintf("/tmp/%s", backupFilename)
 
 	var pgDumpOptions = []string{
+		"-Fc",
+		"-Z",
+		"9",
 		fmt.Sprintf("--dbname=%s", cfg.DbName),
 		fmt.Sprintf("--host=%s", cfg.DbHost),
 		fmt.Sprintf("--port=%d", cfg.DbPort),
@@ -129,4 +132,7 @@ func DBBackup(ctx context.Context) {
 	}
 
 	log.Printf("Successfully uploaded %s of size %d\n", backupFilename, info.Size)
+	if err := os.Remove(backupFQDN); err != nil {
+		log.Printf("Error: Failed to delete %s locally\n", backupFQDN)
+	}
 }
