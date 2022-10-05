@@ -27,6 +27,7 @@ type DBBackupConfig = struct {
 	DbMaxBackups     int    `default:"10" split_words:"true"`
 
 	// minio
+	MinioInsecure        bool   `split_words:"true"`
 	MinioEndpoint        string `required:"true" split_words:"true"`
 	MinioPort            string `required:"true" split_words:"true"`
 	MinioAccessKeyId     string `required:"true" split_words:"true"`
@@ -76,7 +77,7 @@ func DBBackup(ctx context.Context) {
 	// Upload the backup to MinIO
 	minioClient, err := minio.New(fmt.Sprintf("%s:%s", cfg.MinioEndpoint, cfg.MinioPort), &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.MinioAccessKeyId, cfg.MinioAccessKeySecret, ""),
-		Secure: true,
+		Secure: !cfg.MinioInsecure,
 	})
 	if err != nil {
 		log.Fatalln(err)
