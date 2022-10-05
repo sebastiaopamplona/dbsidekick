@@ -25,10 +25,9 @@ type op struct {
 
 func (o op) Do(ctx context.Context, stopSignals chan os.Signal) {
 	if o.FeatureFlag {
-		if o.CronIntervalInMinutes == 0 {
-			o.Operation(ctx)
-		} else {
-			ticker := time.NewTicker(time.Duration(o.CronIntervalInMinutes) * time.Second)
+		o.Operation(ctx)
+		if o.CronIntervalInMinutes != 0 {
+			ticker := time.NewTicker(time.Duration(o.CronIntervalInMinutes) * time.Minute)
 			go func() {
 				for {
 					select {

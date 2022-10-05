@@ -28,9 +28,10 @@ type DBBackupConfig = struct {
 
 	// minio
 	MinioEndpoint        string `required:"true" split_words:"true"`
+	MinioPort            string `required:"true" split_words:"true"`
 	MinioAccessKeyId     string `required:"true" split_words:"true"`
 	MinioAccessKeySecret string `required:"true" split_words:"true"`
-	MinioBucketLocation  string `required:"true" split_words:"true"`
+	MinioBucketLocation  string `split_words:"true"`
 	MinioBucketName      string `required:"true" split_words:"true"`
 }
 
@@ -73,7 +74,7 @@ func DBBackup(ctx context.Context) {
 	}
 
 	// Upload the backup to MinIO
-	minioClient, err := minio.New(cfg.MinioEndpoint, &minio.Options{
+	minioClient, err := minio.New(fmt.Sprintf("%s:%s", cfg.MinioEndpoint, cfg.MinioPort), &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.MinioAccessKeyId, cfg.MinioAccessKeySecret, ""),
 		Secure: true,
 	})
